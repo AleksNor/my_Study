@@ -1,5 +1,7 @@
 from django.http import HttpRequest
 
+from datetime import datetime, timedelta
+
 
 def set_useragent_on_request_middleware(get_response):
 
@@ -32,3 +34,5 @@ class CountRequestMiddleware:
     def process_exception(self, request: HttpRequest, exception: Exception):
         self.exceptions_count += 1
         print("got", self.exceptions_count, "exception so far")
+
+
