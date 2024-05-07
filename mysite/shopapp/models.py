@@ -13,7 +13,7 @@ class Product(models.Model):
     class Meta:
         ordering = ['name', 'price']
         # db_table = 'tech_products'
-        # verbose_name_plural = 'products'
+        # verbose_name = _("product")
 
     name = models.CharField(max_length=100)
     description = models.TextField(null=False, blank=True)
