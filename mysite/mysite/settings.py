@@ -28,8 +28,21 @@ SECRET_KEY = "django-insecure-xh0-37fd36#w^8vl_nwf89%#pcxv=8-3#zc_m4umj-@!&l%i=a
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "0.0.0.0",
+    "127.0.0.1",
+]
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
 
+# if DEBUG:
+#     import socket
+#     hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+#     INTERNAL_IPS.append("10.0.2.2")
+#     INTERNAL_IPS.extend(
+#         [ip[: ip.rfind(".")] + ".1" for ip in ips]
+#     )
 
 # Application definition
 
@@ -41,7 +54,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.admindocs",
+    "django.contrib.sitemaps",
 
+    "debug_toolbar",
     "rest_framework",
     "django_filters",
     "drf_spectacular",
@@ -49,7 +64,8 @@ INSTALLED_APPS = [
     "shopapp.apps.ShopappConfig",
     "requestdataapp.apps.RequestdataappConfig",
     "myauth.apps.MyauthConfig",
-    "myapiapp.apps.MyapiappConfig"
+    "myapiapp.apps.MyapiappConfig",
+    "blogapp.apps.BlogappConfig",
 ]
 
 MIDDLEWARE = [
@@ -60,9 +76,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "requestdataapp.middlewares.CountRequestMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
+    # "requestdataapp.middlewares.CountRequestMiddleware",
+    # "django.middleware.locale.LocaleMiddleware",
     "django.contrib.admindocs.middleware.XViewMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = "mysite.urls"
@@ -128,16 +145,16 @@ USE_I18N = True
 
 USE_TZ = True
 
-USe_L10N = True
+# USe_L10N = True
+#
+# LOCALE_PATHS = [
+#     BASE_DIR / 'locale/'
+# ]
 
-LOCALE_PATHS = [
-    BASE_DIR / 'locale/'
-]
-
-LANGUAGES = [
-    ('en', _('English')),
-    ('ru', _('Russian')),
-]
+# LANGUAGES = [
+#     ('en', _('English')),
+#     ('ru', _('Russian')),
+# ]
 
 
 # Static files (CSS, JavaScript, Images)
@@ -172,3 +189,34 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
+LOGFILE_NAME = BASE_DIR / "log.txt"
+LOGFILE_SIZE = 1 * 1024 * 1024
+LOGFILE_COUNT = 3
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'logfile': {
+            # 'class': 'logging.handlers.TimedRotatingFileHandler',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGFILE_NAME,
+            'maxBytes': LOGFILE_SIZE,
+            'backupCount': LOGFILE_COUNT,
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'logfile',],
+        'level': 'INFO',
+    },
+}
