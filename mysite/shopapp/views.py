@@ -10,12 +10,15 @@ from csv import DictWriter
 
 from django.contrib.auth.models import Group
 from django.shortcuts import render, redirect, reverse
+from django.core.cache import cache
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 from django.http import (HttpResponse,
                          HttpRequest,
                          HttpResponseRedirect,
                          JsonResponse)
 from django.views import View
+from django.views.decorators.cache import cache_page
 from django.views.generic import (ListView,
                                   DetailView,
                                   CreateView,
@@ -69,6 +72,11 @@ class ProductViewSet(ModelViewSet):
         "price",
         "discount",
     ]
+
+    @method_decorator(cache_page(60 * 2))
+    def list(self, *args, **kwargs):
+        return super().list(*args, **kwargs)
+
     @extend_schema(
         summary="Get one product by ID",
         description="Retrives **product**, returns 404 if not found",
@@ -119,6 +127,8 @@ class ProductViewSet(ModelViewSet):
 
 
 class ShopIndexView(View):
+
+    # @method_decorator(cache_page(60))
     def get(self, request: HttpRequest) -> HttpResponse:
         products = [
             ('Laptop', 1999),
@@ -251,15 +261,19 @@ class OrderDeleteView(DeleteView):
 
 class ProductDataExportView(View):
     def get(self, request: HttpRequest) -> JsonResponse:
-        products = Product.objects.order_by("pk").all()
-        products_data = [
-            {
-                "pk": product.pk,
-                "name": product.name,
-                "price": product.price,
-                "archived": product.archived,
-            }
-            for product in products
-        ]
+        cache_key = "products_data_export"
+        products_data = cache.get(cache_key)
+        if products_data is None:
+            products = Product.objects.order_by("pk").all()
+            products_data = [
+                {
+                    "pk": product.pk,
+                    "name": product.name,
+                    "price": product.price,
+                    "archived": product.archived,
+                }
+                for product in products
+            ]
+            cache.set(cache_key, products_data, 300)
 
         return JsonResponse({"products": products_data})
