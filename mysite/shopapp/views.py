@@ -39,7 +39,7 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse
 from .common import save_csv_products
 from .forms import ProductForm, OrderForm, GroupForm
 from .models import Product, Order, ProductImage
-from .serializers import ProductSerializer
+from .serializers import ProductSerializer, OrderSerializer
 
 
 log = logging.getLogger(__name__)
@@ -214,6 +214,35 @@ class ProductDeleteView(DeleteView):
         self.object.archived = True
         self.object.save()
         return HttpResponseRedirect(success_url)
+
+
+@extend_schema(description="Order views CRUD")
+class OrderViewSet(ModelViewSet):
+    """
+    Набор представлений для действий над Order.
+
+    Полный CRUD для заказов
+    """
+
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    filter_backends = [
+        SearchFilter,
+        DjangoFilterBackend,
+        OrderingFilter,
+    ]
+    search_fields = ["name", "description"]
+    filterset_fields = [
+        "delivery_address",
+        "promocode",
+        "created_at",
+        "user",
+        "products",
+    ]
+    ordering_fields = [
+        "created_at",
+        "user",
+    ]
 
 
 class OrdersListView(LoginRequiredMixin, ListView):
